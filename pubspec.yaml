@@ -1,0 +1,23 @@
+name: tulip
+description: TULIP — Mammography Triage System
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^6.1.0
+  file_picker: ^8.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/scans/L-CC.jpeg
+    - assets/scans/L-MLO.jpeg
+    - assets/scans/R-CC.jpeg
+    - assets/scans/R-MLO.jpeg
+    - assets/tulip_logo.jpg
