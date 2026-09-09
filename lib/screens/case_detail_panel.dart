@@ -60,13 +60,16 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
   @override
   void dispose() { _impressionCtrl.dispose(); super.dispose(); }
 
-  String _extractAge() {
+    String _extractAge() {
+    final ageYears = widget.tulipCase.ageYears;
+    if (ageYears != null) return 'Age ${ageYears.floor()}';
     final m = RegExp(r'\d+').firstMatch(widget.tulipCase.demographics);
     return m != null ? 'Age ${m.group(0)}' : widget.tulipCase.demographics;
   }
 
   Widget _buildFindingHeader() {
-    final confPct = '${(widget.tulipCase.confidence * 100).round()}%';
+    final probability = widget.tulipCase.probabilityMalignant ?? widget.tulipCase.confidence;
+    final confPct = '${(probability * 100).round()}%';
     final (title, sub) = switch (_sIdx) {
       1 => ('No significant finding', 'Bilateral · all 4 views'),
       2 => ('Focal asymmetry', 'R breast · right CC view'),

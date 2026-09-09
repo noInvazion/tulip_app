@@ -11,8 +11,16 @@ class TulipCase {
   final CaseStatus status;
   final String waitTime;
   final String studyType;
-  final String? impression;
+    final String? impression;
   final int? scenarioIndex;
+  /// Patient age from the model backend's `age_years` (floating point —
+  /// display should floor it). Null while running on mock/local data.
+  final double? ageYears;
+  /// Calibrated P(malignant) from the model backend's `probability_malignant`
+  /// (== `diagnosis_probability`). Drives confidence displays that must
+  /// reflect the model's actual score, distinct from `confidence` above
+  /// which is also used for local sorting/UI heuristics.
+  final double? probabilityMalignant;
 
   const TulipCase({
     required this.id,
@@ -24,6 +32,8 @@ class TulipCase {
     required this.studyType,
     this.impression,
     this.scenarioIndex,
+    this.ageYears,
+    this.probabilityMalignant,
   });
 }
 

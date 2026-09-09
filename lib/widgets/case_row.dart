@@ -78,7 +78,8 @@ class _CaseRowState extends State<CaseRow> {
               maxLines: 2, overflow: TextOverflow.ellipsis)),
             const SizedBox(width: 16),
             // Confidence
-            SizedBox(width: 90, child: ConfBar(value: c.confidence, status: c.status)),
+            SizedBox(width: 90, child: ConfBar(
+              value: c.probabilityMalignant ?? c.confidence, status: c.status)),
             const SizedBox(width: 16),
             // Badge
             SizedBox(width: 110, child: TulipBadge(statusLabel(c.status), status: c.status)),
