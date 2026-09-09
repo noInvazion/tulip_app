@@ -307,7 +307,7 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
                   const CardHeader('BI-RADS category'),
                   Padding(
                     padding: const EdgeInsets.all(14),
-                    child: Row(children: List.generate(6, (i) {
+                    child: Row(children: List.generate(5, (i) {
                       final n = i + 1;
                       final sel = _selectedBirads == n;
                       return Expanded(child: Padding(
