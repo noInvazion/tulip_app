@@ -1,6 +1,6 @@
 import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/tulip_case.dart';
 import '../theme/colors.dart';
@@ -111,9 +111,21 @@ class _IntakeScreenState extends State<IntakeScreen> {
     'L-CC': _ScanState.empty, 'L-MLO': _ScanState.empty,
     'R-CC': _ScanState.empty, 'R-MLO': _ScanState.empty,
   };
-  final _scanBytes = <String, Uint8List?>{
+    final _scanFiles = <String, PlatformFile?>{
     'L-CC': null, 'L-MLO': null, 'R-CC': null, 'R-MLO': null,
   };
+
+  static const _acceptedExtensions = [
+    'dcm', 'dicom', 'png', 'jpg', 'jpeg', 'tif', 'tiff',
+  ];
+
+  Uint8List? _previewBytes(String view) {
+    final f = _scanFiles[view];
+    if (f == null) return null;
+    final ext = (f.extension ?? '').toLowerCase();
+    if (ext == 'dcm' || ext == 'dicom') return null;
+    return f.bytes;
+  }
   _TriageState _triageState = _TriageState.waiting;
 
   late String _patientId;
@@ -139,25 +151,28 @@ class _IntakeScreenState extends State<IntakeScreen> {
   void _reset() => setState(() {
     for (final k in _scanStates.keys) {
       _scanStates[k] = _ScanState.empty;
-      _scanBytes[k]  = null;
+      _scanFiles[k]  = null;
     }
     _triageState = _TriageState.waiting;
     _patientId   = 'VDR-00$_intakeCounter';
     _scenario    = _scenarios[_scenarioIndex % _scenarios.length];
   });
 
-  Future<void> _pickAndUpload(String view) async {
+    Future<void> _pickAndUpload(String view) async {
     if (_scanStates[view] != _ScanState.empty) return;
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: _acceptedExtensions,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.single;
+    if (file.bytes == null) return;
 
     setState(() {
       _scanStates[view] = _ScanState.loading;
-    });
-
-    final data = await rootBundle.load('assets/scans/$view.jpeg');
-    if (!mounted) return;
-
-    setState(() {
-      _scanBytes[view] = data.buffer.asUint8List();
+      _scanFiles[view]  = file;
     });
 
     Future.delayed(const Duration(milliseconds: 1300), () {
@@ -283,15 +298,15 @@ class _IntakeScreenState extends State<IntakeScreen> {
               ]),
               const SizedBox(height: 12),
               // Row 1 — L-CC | L-MLO
-              Row(children: [
+                             Row(children: [
                 Expanded(child: _ScanTile(
                   view: 'L-CC',  state: _scanStates['L-CC']!,  mock: _scenario.views['L-CC']!,
-                  imageBytes: _scanBytes['L-CC'],
+                  imageBytes: _previewBytes('L-CC'),
                   showResult: showResult, onTap: () => _pickAndUpload('L-CC'))),
                 const SizedBox(width: 10),
                 Expanded(child: _ScanTile(
                   view: 'L-MLO', state: _scanStates['L-MLO']!, mock: _scenario.views['L-MLO']!,
-                  imageBytes: _scanBytes['L-MLO'],
+                  imageBytes: _previewBytes('L-MLO'),
                   showResult: showResult, onTap: () => _pickAndUpload('L-MLO'))),
               ]),
               const SizedBox(height: 10),
@@ -299,12 +314,12 @@ class _IntakeScreenState extends State<IntakeScreen> {
               Row(children: [
                 Expanded(child: _ScanTile(
                   view: 'R-CC',  state: _scanStates['R-CC']!,  mock: _scenario.views['R-CC']!,
-                  imageBytes: _scanBytes['R-CC'],
+                  imageBytes: _previewBytes('R-CC'),
                   showResult: showResult, onTap: () => _pickAndUpload('R-CC'))),
                 const SizedBox(width: 10),
                 Expanded(child: _ScanTile(
                   view: 'R-MLO', state: _scanStates['R-MLO']!, mock: _scenario.views['R-MLO']!,
-                  imageBytes: _scanBytes['R-MLO'],
+                  imageBytes: _previewBytes('R-MLO'),
                   showResult: showResult, onTap: () => _pickAndUpload('R-MLO'))),
               ]),
               // Result banner
