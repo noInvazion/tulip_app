@@ -7,7 +7,8 @@ class TulipApiService {
   /// Update this to match wherever the FastAPI backend is running.
   final String baseUrl;
 
-  const TulipApiService({this.baseUrl = 'http://localhost:8000'});
+  const TulipApiService(
+      {this.baseUrl = 'https://static-swiftly-chuck.ngrok-free.dev'});
 
   Future<CaseScoreResponse> scoreCase({
     PlatformFile? lCc,
@@ -15,12 +16,16 @@ class TulipApiService {
     PlatformFile? rCc,
     PlatformFile? rMlo,
   }) async {
-    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/case'));
+    final request =
+        http.MultipartRequest('POST', Uri.parse('$baseUrl/api/case'));
+    request.headers['ngrok-skip-browser-warning'] = 'true';
 
     void addIfPresent(String field, PlatformFile? file) {
       if (file == null || file.bytes == null) return;
       request.files.add(http.MultipartFile.fromBytes(
-        field, file.bytes!, filename: file.name,
+        field,
+        file.bytes!,
+        filename: file.name,
       ));
     }
 
@@ -42,6 +47,25 @@ class TulipApiService {
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     return CaseScoreResponse.fromJson(body);
+  }
+
+  Future<List<CaseScoreResponse>> getCases() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/cases'),
+      headers: {'ngrok-skip-browser-warning': 'true'},
+    );
+
+    if (response.statusCode != 200) {
+      throw TulipApiException(
+        statusCode: response.statusCode,
+        detail: 'Failed to load cases',
+      );
+    }
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return (body['cases'] as List)
+        .map((c) => CaseScoreResponse.fromJson(c as Map<String, dynamic>))
+        .toList();
   }
 
   String imageUrl(String relativePath) => '$baseUrl$relativePath';

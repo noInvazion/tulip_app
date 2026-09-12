@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/tulip_case.dart';
+import '../services/tulip_api_service.dart';
+import '../services/case_mapper.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/worklist_screen.dart';
 import '../screens/intake_screen.dart';
@@ -21,7 +23,35 @@ class _DesktopShellState extends State<DesktopShell> {
   int _navIndex = 0;
   TulipCase? _selectedCase;
   TulipCase? _lastAddedCase;
-  late final List<TulipCase> _cases = List.of(mockCases);
+  final _api = const TulipApiService();
+  List<TulipCase> _cases = [];
+  bool _loadingCases = true;
+  String? _casesError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCases();
+  }
+
+  Future<void> _loadCases() async {
+    setState(() { _loadingCases = true; _casesError = null; });
+    try {
+      final responses = await _api.getCases();
+      if (!mounted) return;
+      setState(() {
+        _cases = responses.map((r) => tulipCaseFromResponse(
+          r,
+          id: r.caseSummary.caseId.substring(0, 8).toUpperCase(),
+          waitTime: 'Restored',
+        )).toList();
+        _loadingCases = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _casesError = e.toString(); _loadingCases = false; });
+    }
+  }
 
   static int _urgency(CaseStatus s) {
     switch (s) {
@@ -46,11 +76,8 @@ class _DesktopShellState extends State<DesktopShell> {
   void _addCase(TulipCase c) => setState(() { _cases.add(c); _lastAddedCase = c; });
 
   // Model-suggested BI-RADS per scenario (used to detect overrides)
-  static int _modelBirads(TulipCase c) => switch (c.scenarioIndex ?? 0) {
-    1 => 1,
-    2 => 3,
-    _ => 4,
-  };
+   static int _modelBirads(TulipCase c) => c.birads
+      ?? switch (c.scenarioIndex ?? 0) { 1 => 1, 2 => 3, _ => 4 };
 
   static CaseStatus _biradStatus(int b) => switch (b) {
     1 || 2 => CaseStatus.cleared,
@@ -94,6 +121,45 @@ class _DesktopShellState extends State<DesktopShell> {
   void _openCase(TulipCase c) => setState(() => _selectedCase = c);
   void _closeCase()           => setState(() => _selectedCase = null);
 
+  Widget _mainContent() {
+    if (_loadingCases) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_casesError != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Could not load cases: $_casesError'),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: _loadCases, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+    return IndexedStack(
+      index: _navIndex,
+      children: [
+        DashboardScreen(onOpenCase: _openCase, cases: _sorted),
+        WorklistScreen(
+          onOpenCase: _openCase,
+          cases: _sorted,
+          onNewIntake: () => setState(() => _navIndex = 2),
+        ),
+        IntakeScreen(
+          onIntakeComplete: _addCase,
+          onViewInWorklist: () => setState(() {
+            _navIndex = 1;
+            _selectedCase = _lastAddedCase;
+          }),
+        ),
+        const AnalyticsScreen(),
+        const ModelSettingsScreen(),
+        AuditLogScreen(liveEntries: _auditEntries),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,27 +183,7 @@ class _DesktopShellState extends State<DesktopShell> {
                 Expanded(
                   child: Stack(
                     children: [
-                      IndexedStack(
-                        index: _navIndex,
-                        children: [
-                          DashboardScreen(onOpenCase: _openCase, cases: _sorted),
-                          WorklistScreen(
-                            onOpenCase: _openCase,
-                            cases: _sorted,
-                            onNewIntake: () => setState(() => _navIndex = 2),
-                          ),
-                          IntakeScreen(
-                            onIntakeComplete: _addCase,
-                            onViewInWorklist: () => setState(() {
-                              _navIndex = 1;
-                              _selectedCase = _lastAddedCase;
-                            }),
-                          ),
-                          const AnalyticsScreen(),
-                          const ModelSettingsScreen(),
-                          AuditLogScreen(liveEntries: _auditEntries),
-                        ],
-                      ),
+                      _mainContent(),
                       if (_selectedCase != null) ...[
                         GestureDetector(
                           onTap: _closeCase,

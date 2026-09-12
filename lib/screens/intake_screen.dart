@@ -283,6 +283,10 @@ class _IntakeScreenState extends State<IntakeScreen> {
         impression: scenario.impression,
         ageYears: response.caseSummary.ageYears,
         probabilityMalignant: response.caseSummary.probabilityMalignant,
+        viewResults: {for (final v in response.views) v.view: v},
+        caseId: response.caseSummary.caseId,
+        birads: response.caseSummary.birads,
+        recommendation: response.caseSummary.recommendation
       ));
     } catch (e) {
       if (!mounted) return;

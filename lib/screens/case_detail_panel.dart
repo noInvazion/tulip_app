@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/tulip_case.dart';
+import '../models/case_score_response.dart';
+import '../services/case_mapper.dart';
 import '../theme/colors.dart';
 import '../widgets/tulip_badge.dart';
 import '../widgets/t_card.dart';
@@ -53,8 +55,12 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
   @override
   void initState() {
     super.initState();
-    _selectedBirads = switch (_sIdx) { 1 => 1, 2 => 3, _ => 4 };
-    _selectedRec    = switch (_sIdx) { 1 => 0, 2 => 3, _ => 2 };
+    _selectedBirads = widget.tulipCase.birads
+        ?? switch (_sIdx) { 1 => 1, 2 => 3, _ => 4 };
+    final rec = widget.tulipCase.recommendation;
+    _selectedRec = rec != null
+        ? recommendationIndex(rec)
+        : switch (_sIdx) { 1 => 0, 2 => 3, _ => 2 };
   }
 
   @override
@@ -93,7 +99,14 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
     ]);
   }
 
-  List<Widget> _buildFindingRows() => switch (_sIdx) {
+    List<Widget> _buildFindingRows() {
+    final vr = widget.tulipCase.viewResults;
+    if (vr == null) return _buildMockFindingRows(); // demo cases w/o real data
+    return _buildRealFindingRows(vr);
+  }
+
+  // ── Original hardcoded demo rows, kept for mock cases only ──────────────
+  List<Widget> _buildMockFindingRows() => switch (_sIdx) {
     1 => [
       _FindingRow(color: TulipColors.p400,
         name: 'L-CC, L-MLO — no finding',
@@ -125,6 +138,56 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
         desc: 'No significant findings', score: '0.04'),
     ],
   };
+
+  // ── Real rows, built from the backend's per-view findings ───────────────
+  FindingResult? _topValidated(List<FindingResult> findings) {
+    final validated = findings.where((f) => f.validated).toList()
+      ..sort((a, b) => b.probability.compareTo(a.probability));
+    return validated.isEmpty ? null : validated.first;
+  }
+
+  Widget _noFindingRow(String views, double clearConfidence) => _FindingRow(
+    color: TulipColors.gray400,
+    name: '$views — no finding',
+    desc: 'No significant findings',
+    score: clearConfidence.toStringAsFixed(2),
+  );
+
+  Widget _findingRow(String view, FindingResult f) => _FindingRow(
+    color: f.probability >= 0.75 ? TulipColors.red400 : TulipColors.amber400,
+    name: '$view — ${f.name}',
+    desc: f.validated ? 'Validated finding' : 'Exploratory — low sample size',
+    score: f.probability.toStringAsFixed(2),
+  );
+
+  List<Widget> _buildRealFindingRows(Map<String, ViewResult> vr) {
+    final rows = <Widget>[];
+    for (final side in ['L', 'R']) {
+      final ccView  = '$side-CC';
+      final mloView = '$side-MLO';
+      final cc  = vr[ccView];
+      final mlo = vr[mloView];
+      final ccFinding  = cc  != null ? _topValidated(cc.findings)  : null;
+      final mloFinding = mlo != null ? _topValidated(mlo.findings) : null;
+
+      if (ccFinding == null && mloFinding == null) {
+        final clears = [
+          if (cc  != null) 1 - cc.diagnosisProbability,
+          if (mlo != null) 1 - mlo.diagnosisProbability,
+        ];
+        final avg = clears.isEmpty ? 0.0 : clears.reduce((a, b) => a + b) / clears.length;
+        rows.add(_noFindingRow('$ccView, $mloView', avg));
+      } else {
+        rows.add(ccFinding != null
+            ? _findingRow(ccView, ccFinding)
+            : _noFindingRow(ccView, cc != null ? 1 - cc.diagnosisProbability : 0));
+        rows.add(mloFinding != null
+            ? _findingRow(mloView, mloFinding)
+            : _noFindingRow(mloView, mlo != null ? 1 - mlo.diagnosisProbability : 0));
+      }
+    }
+    return rows;
+  }
 
   Widget _buildUrgencyDrivers() {
     final age = _extractAge();
