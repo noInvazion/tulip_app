@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/tulip_case.dart';
 import '../models/case_score_response.dart';
 import '../services/case_mapper.dart';
+import '../services/tulip_api_service.dart';
 import '../theme/colors.dart';
 import '../widgets/tulip_badge.dart';
 import '../widgets/t_card.dart';
@@ -28,6 +29,10 @@ class CaseDetailPanel extends StatefulWidget {
 
 class _CaseDetailPanelState extends State<CaseDetailPanel> {
   bool _gradcamOn = true;
+  final _api = const TulipApiService();
+
+  ViewResult? _view(String view) => widget.tulipCase.viewResults?[view];
+  
   late int _selectedBirads;
   late int _selectedRec;
   bool _signingOff = false;
@@ -325,13 +330,19 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
                         fontSize: 9, fontWeight: FontWeight.w600,
                         color: Colors.white30, letterSpacing: 0.8)),
                     const SizedBox(height: 6),
-                    Row(children: [
+                                        Row(children: [
                       Expanded(child: Padding(
                         padding: const EdgeInsets.only(right: 4),
                         child: _ScanTile(label: 'L-CC', assetPath: 'assets/scans/L-CC.jpeg',
+                          imageUrl: _view('L-CC') != null ? _api.imageUrl(_view('L-CC')!.imageUrl) : null,
+                          overlayUrl: _view('L-CC') != null ? _api.imageUrl(_view('L-CC')!.overlayUrl) : null,
+                          showOverlay: _gradcamOn,
                           showHotspot: _gradcamOn && _sIdx == 0, hotspotHigh: true),
                       )),
                       Expanded(child: _ScanTile(label: 'L-MLO', assetPath: 'assets/scans/L-MLO.jpeg',
+                        imageUrl: _view('L-MLO') != null ? _api.imageUrl(_view('L-MLO')!.imageUrl) : null,
+                        overlayUrl: _view('L-MLO') != null ? _api.imageUrl(_view('L-MLO')!.overlayUrl) : null,
+                        showOverlay: _gradcamOn,
                         showHotspot: _gradcamOn && _sIdx == 0, hotspotHigh: false)),
                     ]),
                   ])),
@@ -343,19 +354,28 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
                         fontSize: 9, fontWeight: FontWeight.w600,
                         color: Colors.white30, letterSpacing: 0.8)),
                     const SizedBox(height: 6),
-                    Row(children: [
+                                        Row(children: [
                       Expanded(child: Padding(
                         padding: const EdgeInsets.only(right: 4),
                         child: _ScanTile(label: 'R-CC', assetPath: 'assets/scans/R-CC.jpeg',
+                          imageUrl: _view('R-CC') != null ? _api.imageUrl(_view('R-CC')!.imageUrl) : null,
+                          overlayUrl: _view('R-CC') != null ? _api.imageUrl(_view('R-CC')!.overlayUrl) : null,
+                          showOverlay: _gradcamOn,
                           showHotspot: _gradcamOn && _sIdx == 2, hotspotHigh: false),
                       )),
                       Expanded(child: _ScanTile(label: 'R-MLO', assetPath: 'assets/scans/R-MLO.jpeg',
+                        imageUrl: _view('R-MLO') != null ? _api.imageUrl(_view('R-MLO')!.imageUrl) : null,
+                        overlayUrl: _view('R-MLO') != null ? _api.imageUrl(_view('R-MLO')!.overlayUrl) : null,
+                        showOverlay: _gradcamOn,
                         showHotspot: _gradcamOn && _sIdx == 2, hotspotHigh: false)),
                     ]),
                   ])),
                 ]),
                 const SizedBox(height: 8),
-                Text('Red rings = high activation · Amber rings = corroborating signal',
+                                Text(
+                  widget.tulipCase.viewResults != null
+                      ? 'GradCAM heatmap — shows where the model attended, not a confirmed lesion location'
+                      : 'Red rings = high activation · Amber rings = corroborating signal',
                   style: GoogleFonts.dmSans(fontSize: 10, color: Colors.white30)),
               ]),
             ),
@@ -559,26 +579,56 @@ class _GradcamToggle extends StatelessWidget {
 
 class _ScanTile extends StatelessWidget {
   final String label;
-  final String assetPath;
-  final bool showHotspot;
-  final bool hotspotHigh;
+  final String assetPath;   // mock fallback, used when imageUrl is null
+  final String? imageUrl;   // real base image from the backend
+  final String? overlayUrl; // real GradCAM overlay from the backend
+  final bool showOverlay;   // GradCAM toggle state — only applies to real data
+  final bool showHotspot;   // mock fallback ring
+  final bool hotspotHigh;   // mock fallback ring color
   const _ScanTile({
     required this.label,
     required this.assetPath,
+    this.imageUrl,
+    this.overlayUrl,
+    this.showOverlay = false,
     required this.showHotspot,
     required this.hotspotHigh,
   });
 
+  static const _ngrokHeader = {'ngrok-skip-browser-warning': 'true'};
+
   @override
   Widget build(BuildContext context) {
+    final hasReal = imageUrl != null;
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: AspectRatio(
         aspectRatio: 3 / 4,
         child: Stack(fit: StackFit.expand, children: [
-          Image.asset(assetPath, fit: BoxFit.cover),
+          if (hasReal)
+            Image.network(
+              imageUrl!,
+              fit: BoxFit.cover,
+              headers: _ngrokHeader,
+              loadingBuilder: (ctx, child, progress) => progress == null
+                  ? child
+                  : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              errorBuilder: (_, __, ___) => Container(
+                color: Colors.black26,
+                child: const Icon(Icons.broken_image, color: Colors.white24),
+              ),
+            )
+          else
+            Image.asset(assetPath, fit: BoxFit.cover),
           Container(color: Colors.black12),
-          if (showHotspot) Positioned.fill(
+          if (hasReal && overlayUrl != null && showOverlay)
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.7,
+                child: Image.network(overlayUrl!, fit: BoxFit.cover, headers: _ngrokHeader),
+              ),
+            ),
+          if (!hasReal && showHotspot) Positioned.fill(
             child: _HotspotOverlay(high: hotspotHigh),
           ),
           Positioned(
@@ -597,7 +647,6 @@ class _ScanTile extends StatelessWidget {
     );
   }
 }
-
 class _HotspotOverlay extends StatefulWidget {
   final bool high;
   const _HotspotOverlay({required this.high});
