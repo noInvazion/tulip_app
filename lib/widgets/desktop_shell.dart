@@ -85,7 +85,8 @@ class _DesktopShellState extends State<DesktopShell> {
     _      => CaseStatus.urgent,
   };
 
-  void _signOffCase(TulipCase c, int birads, String rec, String notes) {
+  
+    void _signOffCase(TulipCase c, int birads, String rec, String notes) {
     final now = DateTime.now();
     final hh  = now.hour.toString().padLeft(2, '0');
     final mm  = now.minute.toString().padLeft(2, '0');
@@ -93,6 +94,15 @@ class _DesktopShellState extends State<DesktopShell> {
     final detail = isOverride
         ? 'BI-RADS ${_modelBirads(c)} → $birads · $rec'
         : 'BI-RADS $birads confirmed · $rec';
+
+    // Best-effort cleanup on the backend — doesn't block local sign-off if
+    // it fails (server offline, already deleted, etc.).
+    final caseId = c.caseId;
+    if (caseId != null) {
+      _api.deleteCase(caseId).catchError((e) {
+        debugPrint('Failed to delete case $caseId from backend: $e');
+      });
+    }
 
     setState(() {
       _cases.remove(c);
@@ -108,7 +118,6 @@ class _DesktopShellState extends State<DesktopShell> {
       ));
     });
   }
-
   final List<NavItem> _navItems = const [
     NavItem(label: 'Dashboard',      icon: Icons.home_outlined,        activeIcon: Icons.home_rounded),
     NavItem(label: 'Worklist',       icon: Icons.list_alt_outlined,    activeIcon: Icons.list_alt_rounded,  badge: '3'),

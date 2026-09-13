@@ -68,6 +68,23 @@ class TulipApiService {
         .toList();
   }
 
+    Future<void> deleteCase(String caseId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/case/$caseId'),
+      headers: {'ngrok-skip-browser-warning': 'true'},
+    );
+    // Treat "already gone" as success too — deleting is idempotent cleanup,
+    // not something that should block sign-off if it's already been removed.
+    if (response.statusCode != 200 &&
+        response.statusCode != 204 &&
+        response.statusCode != 404) {
+      throw TulipApiException(
+        statusCode: response.statusCode,
+        detail: 'Failed to delete case',
+      );
+    }
+  }
+
   String imageUrl(String relativePath) => '$baseUrl$relativePath';
 }
 
