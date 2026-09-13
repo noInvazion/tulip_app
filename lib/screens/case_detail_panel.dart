@@ -146,18 +146,20 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
     return validated.isEmpty ? null : validated.first;
   }
 
-  Widget _noFindingRow(String views, double clearConfidence) => _FindingRow(
+    Widget _noFindingRow(String views, double clearConfidence, String density) => _FindingRow(
     color: TulipColors.gray400,
     name: '$views — no finding',
     desc: 'No significant findings',
     score: clearConfidence.toStringAsFixed(2),
+    density: density,
   );
 
-  Widget _findingRow(String view, FindingResult f) => _FindingRow(
+  Widget _findingRow(String view, FindingResult f, String density) => _FindingRow(
     color: f.probability >= 0.75 ? TulipColors.red400 : TulipColors.amber400,
     name: '$view — ${f.name}',
     desc: f.validated ? 'Validated finding' : 'Exploratory — low sample size',
     score: f.probability.toStringAsFixed(2),
+    density: density,
   );
 
   List<Widget> _buildRealFindingRows(Map<String, ViewResult> vr) {
@@ -169,6 +171,7 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
       final mlo = vr[mloView];
       final ccFinding  = cc  != null ? _topValidated(cc.findings)  : null;
       final mloFinding = mlo != null ? _topValidated(mlo.findings) : null;
+      final density = cc?.densityLetter ?? mlo?.densityLetter ?? '—';
 
       if (ccFinding == null && mloFinding == null) {
         final clears = [
@@ -176,14 +179,14 @@ class _CaseDetailPanelState extends State<CaseDetailPanel> {
           if (mlo != null) 1 - mlo.diagnosisProbability,
         ];
         final avg = clears.isEmpty ? 0.0 : clears.reduce((a, b) => a + b) / clears.length;
-        rows.add(_noFindingRow('$ccView, $mloView', avg));
+        rows.add(_noFindingRow('$ccView, $mloView', avg, density));
       } else {
         rows.add(ccFinding != null
-            ? _findingRow(ccView, ccFinding)
-            : _noFindingRow(ccView, cc != null ? 1 - cc.diagnosisProbability : 0));
+            ? _findingRow(ccView, ccFinding, density)
+            : _noFindingRow(ccView, cc != null ? 1 - cc.diagnosisProbability : 0, density));
         rows.add(mloFinding != null
-            ? _findingRow(mloView, mloFinding)
-            : _noFindingRow(mloView, mlo != null ? 1 - mlo.diagnosisProbability : 0));
+            ? _findingRow(mloView, mloFinding, density)
+            : _noFindingRow(mloView, mlo != null ? 1 - mlo.diagnosisProbability : 0, density));
       }
     }
     return rows;
@@ -663,11 +666,13 @@ class _FindingRow extends StatelessWidget {
   final String name;
   final String desc;
   final String score;
+  final String? density;
   const _FindingRow({
     required this.color,
     required this.name,
     required this.desc,
     required this.score,
+    this.density,
   });
 
   @override
@@ -687,8 +692,9 @@ class _FindingRow extends StatelessWidget {
             fontSize: 13, fontWeight: FontWeight.w500, color: TulipColors.text)),
         Text(desc, style: GoogleFonts.dmSans(
             fontSize: 11, color: TulipColors.textS)),
-        Text('activation: $score', style: GoogleFonts.dmMono(
-            fontSize: 10, color: TulipColors.textT)),
+        Text(
+          density != null ? 'activation: $score · density: $density' : 'activation: $score',
+          style: GoogleFonts.dmMono(fontSize: 10, color: TulipColors.textT)),
       ])),
     ]),
   );
