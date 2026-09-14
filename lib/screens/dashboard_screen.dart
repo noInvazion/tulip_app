@@ -17,18 +17,24 @@ class DashboardScreen extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Stat cards
+                // Stat cards
         Row(children: [
-          Expanded(child: StatCard(label: 'Urgent cases', value: '3',
-            delta: '↑ 1 since yesterday', valueColor: TulipColors.red400)),
+          Expanded(child: StatCard(
+            label: 'Urgent cases',
+            value: '${cases.where((c) => c.status == CaseStatus.urgent).length}',
+            valueColor: TulipColors.red400)),
           const SizedBox(width: 12),
-          Expanded(child: StatCard(label: 'In queue', value: '12', delta: '4 awaiting sign-off')),
+          Expanded(child: StatCard(label: 'In queue', value: '${cases.length}')),
           const SizedBox(width: 12),
-          Expanded(child: StatCard(label: 'Auto-cleared today', value: '67%',
-            delta: '↑ 3% vs last week', deltaUp: true, valueColor: TulipColors.p400)),
+          Expanded(child: StatCard(
+            label: 'Needs review',
+            value: '${cases.where((c) => c.status == CaseStatus.review).length}',
+            valueColor: TulipColors.amber400)),
           const SizedBox(width: 12),
-          Expanded(child: StatCard(label: 'Radiologist time saved',
-            value: '11.2h', delta: 'this week', deltaUp: true)),
+          Expanded(child: StatCard(
+            label: 'Cleared',
+            value: '${cases.where((c) => c.status == CaseStatus.cleared).length}',
+            valueColor: TulipColors.p400)),
         ]),
         const SizedBox(height: 20),
         // Main grid

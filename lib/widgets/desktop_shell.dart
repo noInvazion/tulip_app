@@ -118,13 +118,14 @@ class _DesktopShellState extends State<DesktopShell> {
       ));
     });
   }
-  final List<NavItem> _navItems = const [
-    NavItem(label: 'Dashboard',      icon: Icons.home_outlined,        activeIcon: Icons.home_rounded),
-    NavItem(label: 'Worklist',       icon: Icons.list_alt_outlined,    activeIcon: Icons.list_alt_rounded,  badge: '3'),
-    NavItem(label: 'New intake',     icon: Icons.add_circle_outline,   activeIcon: Icons.add_circle_rounded),
-    NavItem(label: 'Analytics',      icon: Icons.show_chart_rounded,   activeIcon: Icons.show_chart_rounded),
-    NavItem(label: 'Model settings', icon: Icons.settings_outlined,    activeIcon: Icons.settings_rounded),
-    NavItem(label: 'Audit log',      icon: Icons.description_outlined, activeIcon: Icons.description_rounded),
+   List<NavItem> get _navItems => [
+    const NavItem(label: 'Dashboard',      icon: Icons.home_outlined,        activeIcon: Icons.home_rounded),
+    NavItem(label: 'Worklist',       icon: Icons.list_alt_outlined,    activeIcon: Icons.list_alt_rounded,
+      badge: _cases.isEmpty ? null : '${_cases.length}'),
+    const NavItem(label: 'New intake',     icon: Icons.add_circle_outline,   activeIcon: Icons.add_circle_rounded),
+    const NavItem(label: 'Analytics',      icon: Icons.show_chart_rounded,   activeIcon: Icons.show_chart_rounded),
+    const NavItem(label: 'Model settings', icon: Icons.settings_outlined,    activeIcon: Icons.settings_rounded),
+    const NavItem(label: 'Audit log',      icon: Icons.description_outlined, activeIcon: Icons.description_rounded),
   ];
 
   void _openCase(TulipCase c) => setState(() => _selectedCase = c);
