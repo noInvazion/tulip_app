@@ -150,7 +150,7 @@ class _DesktopShellState extends State<DesktopShell> {
     return IndexedStack(
       index: _navIndex,
       children: [
-        DashboardScreen(onOpenCase: _openCase, cases: _sorted),
+        DashboardScreen(onOpenCase: _openCase, cases: _sorted, auditEntries: _auditEntries),
         WorklistScreen(
           onOpenCase: _openCase,
           cases: _sorted,
@@ -189,6 +189,7 @@ class _DesktopShellState extends State<DesktopShell> {
                     'Model settings', 'Audit log',
                   ],
                   index: _navIndex,
+                  cases: _cases,
                 ),
                 Expanded(
                   child: Stack(

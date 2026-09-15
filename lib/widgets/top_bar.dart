@@ -1,23 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/tulip_case.dart';
 import '../theme/colors.dart';
 
 class TopBar extends StatelessWidget {
   final List<String> screenTitles;
   final int index;
-  const TopBar({required this.screenTitles, required this.index, super.key});
+  final List<TulipCase> cases;
+  const TopBar({
+    required this.screenTitles,
+    required this.index,
+    required this.cases,
+    super.key,
+  });
 
-  static const List<String> subtitles = [
-    'Friday, 10 April 2026',
-    '12 cases · 3 urgent',
-    'Upload patient scans',
-    'Performance overview',
-    '',
-    '',
+  static const _weekdayNames = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
   ];
+  static const _monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December',
+  ];
+
+  String get _formattedDate {
+    final d = DateTime.now();
+    return '${_weekdayNames[d.weekday - 1]}, ${d.day} ${_monthNames[d.month - 1]} ${d.year}';
+  }
+
+  List<String> get _subtitles {
+    final urgent = cases.where((c) => c.status == CaseStatus.urgent).length;
+    return [
+      _formattedDate,
+      '${cases.length} cases · $urgent urgent',
+      'Upload patient scans',
+      'Performance overview',
+      '',
+      '',
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final subtitles = _subtitles;
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 24),

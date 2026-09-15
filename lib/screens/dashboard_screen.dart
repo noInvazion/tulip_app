@@ -10,7 +10,13 @@ import '../widgets/case_row.dart';
 class DashboardScreen extends StatelessWidget {
   final ValueChanged<TulipCase> onOpenCase;
   final List<TulipCase> cases;
-  const DashboardScreen({required this.onOpenCase, required this.cases, super.key});
+  final List<AuditEntry> auditEntries;
+  const DashboardScreen({
+    required this.onOpenCase,
+    required this.cases,
+    required this.auditEntries,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +60,9 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(width: 16),
           // Right column
           Expanded(flex: 5, child: Column(children: [
-            _TriageDistCard(),
+            _TriageDistCard(cases: cases),
             const SizedBox(height: 16),
-            _AgreementCard(),
+            _AgreementCard(entries: auditEntries),
           ])),
         ]),
       ]),
@@ -65,21 +71,32 @@ class DashboardScreen extends StatelessWidget {
 }
 
 class _TriageDistCard extends StatelessWidget {
+  final List<TulipCase> cases;
+  const _TriageDistCard({required this.cases});
+
+  double _fraction(CaseStatus s) {
+    if (cases.isEmpty) return 0;
+    return cases.where((c) => c.status == s).length / cases.length;
+  }
+
   @override
   Widget build(BuildContext context) => TCard(child: Column(children: [
     const CardHeader('Today\'s triage'),
     Padding(
       padding: const EdgeInsets.all(18),
       child: Column(children: [
-        _DistBar('Auto-cleared', 0.67, TulipColors.p400),
+        _DistBar('Auto-cleared', _fraction(CaseStatus.cleared), TulipColors.p400),
         const SizedBox(height: 10),
-        _DistBar('Needs review', 0.22, TulipColors.amber400),
+        _DistBar('Needs review', _fraction(CaseStatus.review), TulipColors.amber400),
         const SizedBox(height: 10),
-        _DistBar('Urgent', 0.11, TulipColors.red400),
+        _DistBar('Urgent', _fraction(CaseStatus.urgent), TulipColors.red400),
+        const SizedBox(height: 10),
+        _DistBar('Additional imaging', _fraction(CaseStatus.pending), TulipColors.gray400),
       ]),
     ),
   ]));
 }
+
 
 class _DistBar extends StatelessWidget {
   final String label;
@@ -106,31 +123,36 @@ class _DistBar extends StatelessWidget {
 }
 
 class _AgreementCard extends StatelessWidget {
+  final List<AuditEntry> entries;
+  const _AgreementCard({required this.entries});
+
   @override
   Widget build(BuildContext context) {
-    final rows = [
-      ('VDR-00502', 'BI-RADS 1 → 1', true),
-      ('VDR-00487', 'BI-RADS 4 → 3', false),
-      ('VDR-00469', 'BI-RADS 4 → 4', true),
-      ('VDR-00455', 'BI-RADS 1 → 1', true),
-    ];
+    final rows = entries.take(4).toList();
     return TCard(child: Column(children: [
       const CardHeader('Recent AI agreement'),
-      ...rows.map((r) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: TulipColors.border, width: 0.5))),
-        child: Row(children: [
-          Expanded(child: Text(r.$1, style: GoogleFonts.dmSans(
-              fontSize: 12, fontWeight: FontWeight.w500, color: TulipColors.text))),
-          Text(r.$2, style: GoogleFonts.dmSans(fontSize: 11, color: TulipColors.textS)),
-          const SizedBox(width: 10),
-          r.$3
-            ? TulipBadge('Match', bg: TulipColors.green50, fg: TulipColors.green800)
-            : TulipBadge('Override', bg: TulipColors.amber50, fg: TulipColors.amber800),
-        ]),
-      )),
+      if (rows.isEmpty)
+        Padding(
+          padding: const EdgeInsets.all(18),
+          child: Text('No sign-offs yet', style: GoogleFonts.dmSans(
+              fontSize: 12, color: TulipColors.textS)),
+        )
+      else
+        ...rows.map((r) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: TulipColors.border, width: 0.5))),
+          child: Row(children: [
+            Expanded(child: Text(r.caseId, style: GoogleFonts.dmSans(
+                fontSize: 12, fontWeight: FontWeight.w500, color: TulipColors.text))),
+            Text(r.detail.split(' · ').first, style: GoogleFonts.dmSans(
+                fontSize: 11, color: TulipColors.textS)),
+            const SizedBox(width: 10),
+            !r.override
+              ? TulipBadge('Match', bg: TulipColors.green50, fg: TulipColors.green800)
+              : TulipBadge('Override', bg: TulipColors.amber50, fg: TulipColors.amber800),
+          ]),
+        )),
     ]));
   }
 }
-
