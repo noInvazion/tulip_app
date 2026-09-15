@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'theme/theme.dart';
-import 'widgets/desktop_shell.dart';
+import 'widgets/splash_screen.dart';
 
 void main() {
   runApp(const TulipApp());
@@ -15,7 +15,7 @@ class TulipApp extends StatelessWidget {
       title: 'TULIP',
       theme: tulipTheme,
       debugShowCheckedModeBanner: false,
-      home: const DesktopShell(),
+      home: const SplashScreen(),
     );
   }
 }
