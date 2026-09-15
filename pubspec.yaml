@@ -26,6 +26,10 @@ flutter_launcher_icons:
     image_path: "assets/tulip_logo.jpg"
     background_color: "#ffffff"
     theme_color: "#ffffff"
+  windows:
+    generate: true
+    image_path: "assets/tulip_logo.jpg"
+    icon_size: 256
 
 flutter:
   uses-material-design: true
