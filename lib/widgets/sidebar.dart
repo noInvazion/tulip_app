@@ -37,19 +37,26 @@ class Sidebar extends StatelessWidget {
           Container(
             padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
             decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: TulipColors.border, width: 0.5)),
+              border: Border(
+                  bottom: BorderSide(color: TulipColors.border, width: 0.5)),
             ),
             child: Row(
               children: [
-                Image.asset('assets/tulip_logo.jpg', width: 32, height: 32),
+                Image.asset('assets/tulip-logo.png', width: 32, height: 32),
                 const SizedBox(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('TULIP', style: GoogleFonts.dmSans(
-                      fontSize: 18, fontWeight: FontWeight.w600,
-                      color: TulipColors.text, letterSpacing: -0.5)),
-                  Text('MAMMOGRAPHY TRIAGE', style: GoogleFonts.dmSans(
-                      fontSize: 9, fontWeight: FontWeight.w600,
-                      color: TulipColors.textT, letterSpacing: 0.8)),
+                  Text('TULIP',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: TulipColors.text,
+                          letterSpacing: -0.5)),
+                  Text('MAMMOGRAPHY TRIAGE',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: TulipColors.textT,
+                          letterSpacing: 0.8)),
                 ]),
               ],
             ),
@@ -62,19 +69,27 @@ class Sidebar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _NavSectionLabel('Workspace'),
-                  ...items.sublist(0, 4).asMap().entries.map((e) =>
-                    _SidebarNavItem(
-                      item: e.value, index: e.key,
-                      isActive: selectedIndex == e.key,
-                      onTap: () => onSelect(e.key),
-                    )),
+                  ...items
+                      .sublist(0, 4)
+                      .asMap()
+                      .entries
+                      .map((e) => _SidebarNavItem(
+                            item: e.value,
+                            index: e.key,
+                            isActive: selectedIndex == e.key,
+                            onTap: () => onSelect(e.key),
+                          )),
                   _NavSectionLabel('System'),
-                  ...items.sublist(4).asMap().entries.map((e) =>
-                    _SidebarNavItem(
-                      item: e.value, index: e.key + 4,
-                      isActive: selectedIndex == e.key + 4,
-                      onTap: () => onSelect(e.key + 4),
-                    )),
+                  ...items
+                      .sublist(4)
+                      .asMap()
+                      .entries
+                      .map((e) => _SidebarNavItem(
+                            item: e.value,
+                            index: e.key + 4,
+                            isActive: selectedIndex == e.key + 4,
+                            onTap: () => onSelect(e.key + 4),
+                          )),
                 ],
               ),
             ),
@@ -83,11 +98,13 @@ class Sidebar extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: TulipColors.border, width: 0.5)),
+              border: Border(
+                  top: BorderSide(color: TulipColors.border, width: 0.5)),
             ),
             child: Row(children: [
               Container(
-                width: 32, height: 32,
+                width: 32,
+                height: 32,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [TulipColors.p200, TulipColors.p400],
@@ -96,15 +113,23 @@ class Sidebar extends StatelessWidget {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Center(child: Text('AN', style: GoogleFonts.dmSans(
-                    fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white))),
+                child: Center(
+                    child: Text('AN',
+                        style: GoogleFonts.dmSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white))),
               ),
               const SizedBox(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Dr. A. Nwosu', style: GoogleFonts.dmSans(
-                    fontSize: 12, fontWeight: FontWeight.w500, color: TulipColors.text)),
-                Text('Radiologist', style: GoogleFonts.dmSans(
-                    fontSize: 10, color: TulipColors.textT)),
+                Text('Dr. A. Nwosu',
+                    style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: TulipColors.text)),
+                Text('Radiologist',
+                    style: GoogleFonts.dmSans(
+                        fontSize: 10, color: TulipColors.textT)),
               ]),
             ]),
           ),
@@ -120,11 +145,14 @@ class _NavSectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
-    child: Text(label.toUpperCase(), style: GoogleFonts.dmSans(
-        fontSize: 10, fontWeight: FontWeight.w600,
-        color: TulipColors.textT, letterSpacing: 0.8)),
-  );
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
+        child: Text(label.toUpperCase(),
+            style: GoogleFonts.dmSans(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: TulipColors.textT,
+                letterSpacing: 0.8)),
+      );
 }
 
 class _SidebarNavItem extends StatelessWidget {
@@ -152,12 +180,15 @@ class _SidebarNavItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(children: [
-          Icon(isActive ? item.activeIcon : item.icon, size: 16,
-            color: isActive ? TulipColors.p600 : TulipColors.gray400),
+          Icon(isActive ? item.activeIcon : item.icon,
+              size: 16,
+              color: isActive ? TulipColors.p600 : TulipColors.gray400),
           const SizedBox(width: 10),
-          Text(item.label, style: GoogleFonts.dmSans(
-            fontSize: 13, fontWeight: FontWeight.w500,
-            color: isActive ? TulipColors.p800 : TulipColors.textS)),
+          Text(item.label,
+              style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isActive ? TulipColors.p800 : TulipColors.textS)),
           if (item.badge != null) ...[
             const Spacer(),
             Container(
@@ -166,8 +197,11 @@ class _SidebarNavItem extends StatelessWidget {
                 color: TulipColors.red400,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(item.badge!, style: GoogleFonts.dmSans(
-                  fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white)),
+              child: Text(item.badge!,
+                  style: GoogleFonts.dmSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
             ),
           ],
         ]),

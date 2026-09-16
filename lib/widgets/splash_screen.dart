@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
                 opacity: _logoOpacity.value,
                 child: Transform.scale(
                   scale: _logoScale.value,
-                  child: Image.asset('assets/tulip_logo.jpg', width: 96, height: 96),
+                  child: Image.asset('assets/tulip-logo.png', width: 96, height: 96),
                 ),
               ),
               const SizedBox(height: 16),

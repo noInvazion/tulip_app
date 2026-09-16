@@ -20,15 +20,15 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/tulip_logo.jpg"
+  image_path: "assets/tulip-logo.png"
   web:
     generate: true
-    image_path: "assets/tulip_logo.jpg"
+    image_path: "assets/tulip-logo.png"
     background_color: "#ffffff"
     theme_color: "#ffffff"
   windows:
     generate: true
-    image_path: "assets/tulip_logo.jpg"
+    image_path: "assets/tulip-logo.png"
     icon_size: 256
 
 flutter:
@@ -38,4 +38,4 @@ flutter:
     - assets/scans/L-MLO.jpeg
     - assets/scans/R-CC.jpeg
     - assets/scans/R-MLO.jpeg
-    - assets/tulip_logo.jpg
+    - assets/tulip-logo.png
